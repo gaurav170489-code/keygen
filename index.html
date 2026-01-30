@@ -9,11 +9,11 @@
     
     <style>
         :root {
-            --primary: #007AFF; /* Apple Blue */
+            --primary: #007AFF; 
             --bg: #F2F2F7;
         }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
             background-color: var(--bg);
             margin: 0;
             display: flex;
@@ -22,26 +22,50 @@
             height: 100vh;
         }
         .container {
-            width: 90%;
-            max-width: 400px;
+            width: 85%;
+            max-width: 350px;
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
         }
-        h2 { margin-top: 0; color: #1C1C1E; }
-        .date-display { color: #8E8E93; font-size: 14px; margin-bottom: 20px; }
+        h2 { margin-top: 0; color: #1C1C1E; font-size: 22px; }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-size: 11px;
+            color: #8E8E93;
+            margin-bottom: 5px;
+            margin-left: 5px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #D1D1D6;
+            border-radius: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: #F2F2F7;
+            font-family: inherit;
+        }
+
         .key-box {
             background: #F2F2F7;
             padding: 20px;
             border-radius: 15px;
             font-size: 36px;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--primary);
             letter-spacing: 4px;
-            margin: 20px 0;
-            min-height: 44px;
+            margin: 15px 0;
+            border: 1px solid #E5E5EA;
         }
         button {
             background: var(--primary);
@@ -53,29 +77,69 @@
             font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0,122,255,0.2);
         }
-        button:active { opacity: 0.7; }
+        button:active { 
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+        .today-btn {
+            background: none;
+            color: var(--primary);
+            box-shadow: none;
+            font-size: 14px;
+            margin-top: 10px;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Access Key</h2>
-    <div class="date-display" id="dateStr">---</div>
+    
+    <div class="input-group">
+        <label>Verification Date</label>
+        <input type="date" id="datePicker">
+    </div>
+
     <div class="key-box" id="keyDisplay">------</div>
+    
     <button onclick="calculate()">Generate Key</button>
+    <button class="today-btn" onclick="setToToday()">Reset to Today</button>
 </div>
 
 <script>
-    function calculate() {
+    // 1. Function to set the picker to the current system date
+    function setToToday() {
         const now = new Date();
-        const dd = now.getDate();
-        const mm = now.getMonth() + 1;
-        const yy = now.getFullYear() % 100;
-        const secretSalt = 0xAF21; // Must match your software
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        
+        const todayString = `${year}-${month}-${day}`;
+        document.getElementById('datePicker').value = todayString;
+        document.getElementById('keyDisplay').innerText = "------";
+    }
+
+    // 2. Run automatically when page loads
+    window.onload = setToToday;
+
+    function calculate() {
+        const dateInput = document.getElementById('datePicker').value;
+        if (!dateInput) return;
+
+        // Correctly parse YYYY-MM-DD from the picker
+        const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
+        
+        const dd = day;
+        const mm = month;
+        const yy = year % 100;
+        
+        const secretSalt = 0xAF21; 
 
         let result;
+        // Even/Odd Logic based on selected day
         if (dd % 2 === 0) {
             result = (dd * 157) ^ (yy + secretSalt);
         } else {
@@ -83,9 +147,7 @@
         }
 
         const finalKey = Math.abs(result % 1000000).toString().padStart(6, '0');
-        
         document.getElementById('keyDisplay').innerText = finalKey;
-        document.getElementById('dateStr').innerText = now.toDateString();
     }
 </script>
 
