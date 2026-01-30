@@ -47,9 +47,20 @@
 <script>
     function setToToday() {
         const now = new Date();
-        document.getElementById('datePicker').value = now.toISOString().split('T')[0];
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        document.getElementById('datePicker').value = `${y}-${m}-${d}`;
         document.getElementById('keyDisplay').innerText = "------";
     }
+
+    // UPDATED: Automatically reset date when user returns to the app
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            setToToday();
+        }
+    });
+
     window.onload = setToToday;
 
     function calculate() {
@@ -62,13 +73,11 @@
         const yy = year % 100;
         const secretSalt = 0xAF21; 
 
-        // THE SCRAMBLER: Uses Sine to break linearity
+        // THE SCRAMBLER
         let shuffle = Math.abs(Math.sin(dd * 12.9898 + mm * 78.233 + yy * 4.1414) * 43758.5453);
         let scrambleFactor = Math.floor(shuffle) % 100000;
 
         let baseResult = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
-        
-        // Final Key is base mixed with scramble factor
         let finalResult = (baseResult ^ scrambleFactor) % 1000000;
 
         const finalKey = Math.abs(finalResult).toString().padStart(6, '0');
