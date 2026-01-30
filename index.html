@@ -6,107 +6,22 @@
     <title>KeyGen Pro</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <style>
-        :root {
-            --primary: #007AFF; 
-            --success: #34C759;
-            --whatsapp: #25D366;
-            --bg: #F2F2F7;
-        }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-            background-color: var(--bg);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            width: 85%;
-            max-width: 350px;
-            background: white;
-            padding: 25px;
-            border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+        :root { --primary: #007AFF; --success: #34C759; --whatsapp: #25D366; --bg: #F2F2F7; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 85%; max-width: 350px; background: white; padding: 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; }
         h2 { margin-top: 0; color: #1C1C1E; font-size: 22px; margin-bottom: 20px;}
-        
         .input-group { margin-bottom: 20px; text-align: left; }
-        label {
-            display: block;
-            font-size: 11px;
-            color: #8E8E93;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-        input[type="date"] {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #D1D1D6;
-            border-radius: 12px;
-            font-size: 16px;
-            box-sizing: border-box;
-            background: #F2F2F7;
-            color: #1C1C1E;
-        }
-
-        .key-box {
-            background: #F2F2F7;
-            padding: 15px;
-            border-radius: 16px;
-            font-size: 38px;
-            font-weight: 800;
-            color: var(--primary);
-            letter-spacing: 4px;
-            margin: 10px 0;
-            border: 2px dashed #D1D1D6;
-        }
-
-        .btn {
-            border: none;
-            width: 100%;
-            padding: 15px;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
+        label { display: block; font-size: 11px; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
+        input[type="date"] { width: 100%; padding: 14px; border: 1px solid #D1D1D6; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #F2F2F7; color: #1C1C1E; }
+        .key-box { background: #F2F2F7; padding: 15px; border-radius: 16px; font-size: 38px; font-weight: 800; color: var(--primary); letter-spacing: 4px; margin: 10px 0; border: 2px dashed #D1D1D6; }
+        .btn { border: none; width: 100%; padding: 15px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
         .btn-main { background: var(--primary); color: white; }
         .btn-copy { background: white; color: var(--primary); border: 2px solid var(--primary); padding: 13px; }
         .btn-wa { background: var(--whatsapp); color: white; }
-
         button:active { transform: scale(0.97); opacity: 0.9; }
-
-        .today-link {
-            display: block;
-            color: #8E8E93;
-            font-size: 13px;
-            text-decoration: none;
-            margin-top: 15px;
-        }
-
-        #toast {
-            visibility: hidden;
-            background-color: #1C1C1E;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            position: fixed;
-            bottom: 50px;
-            font-size: 14px;
-            font-weight: 500;
-        }
+        .today-link { display: block; color: #8E8E93; font-size: 13px; text-decoration: none; margin-top: 15px; }
+        #toast { visibility: hidden; background-color: #1C1C1E; color: white; padding: 12px 24px; border-radius: 50px; position: fixed; bottom: 50px; font-size: 14px; font-weight: 500; }
         #toast.show { visibility: visible; animation: pop 0.3s ease-out, fadeout 0.3s 1.7s ease-in forwards; }
         @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
@@ -116,24 +31,14 @@
 
 <div class="container">
     <h2>Access Key</h2>
-    
     <div class="input-group">
         <label>Verification Date</label>
         <input type="date" id="datePicker">
     </div>
-
     <div class="key-box" id="keyDisplay">------</div>
-    
     <button class="btn btn-main" onclick="calculate()">Generate Key</button>
-    
-    <button class="btn btn-copy" id="copyBtn" onclick="copyKey()">
-        <span>📋</span> Copy to Clipboard
-    </button>
-
-    <button class="btn btn-wa" onclick="shareWhatsApp()">
-        <span>💬</span> Share via WhatsApp
-    </button>
-    
+    <button class="btn btn-copy" id="copyBtn" onclick="copyKey()"><span>📋</span> Copy to Clipboard</button>
+    <button class="btn btn-wa" onclick="shareWhatsApp()"><span>💬</span> Share via WhatsApp</button>
     <a href="#" class="today-link" onclick="setToToday()">Reset to Today</a>
 </div>
 
@@ -142,35 +47,37 @@
 <script>
     function setToToday() {
         const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
-        document.getElementById('datePicker').value = `${y}-${m}-${d}`;
+        document.getElementById('datePicker').value = now.toISOString().split('T')[0];
         document.getElementById('keyDisplay').innerText = "------";
     }
-
     window.onload = setToToday;
 
     function calculate() {
         const dateInput = document.getElementById('datePicker').value;
         if (!dateInput) return;
-
         const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
+        
         const dd = day;
         const mm = month;
         const yy = year % 100;
         const secretSalt = 0xAF21; 
 
-        let result = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
+        // THE SCRAMBLER: Uses Sine to break linearity
+        let shuffle = Math.abs(Math.sin(dd * 12.9898 + mm * 78.233 + yy * 4.1414) * 43758.5453);
+        let scrambleFactor = Math.floor(shuffle) % 100000;
 
-        const finalKey = Math.abs(result % 1000000).toString().padStart(6, '0');
+        let baseResult = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
+        
+        // Final Key is base mixed with scramble factor
+        let finalResult = (baseResult ^ scrambleFactor) % 1000000;
+
+        const finalKey = Math.abs(finalResult).toString().padStart(6, '0');
         document.getElementById('keyDisplay').innerText = finalKey;
     }
 
     function copyKey() {
         const key = document.getElementById('keyDisplay').innerText;
         if (key === "------") return alert("Generate key first!");
-        
         navigator.clipboard.writeText(key).then(() => {
             const toast = document.getElementById("toast");
             toast.className = "show";
@@ -182,11 +89,9 @@
         const key = document.getElementById('keyDisplay').innerText;
         const date = document.getElementById('datePicker').value;
         if (key === "------") return alert("Generate key first!");
-
-        const text = encodeURIComponent(`Your Access Key for ${date} is: ${key}`);
+        const text = encodeURIComponent(`Access Key for ${date}: ${key}`);
         window.location.href = `whatsapp://send?text=${text}`;
     }
 </script>
-
 </body>
 </html>
