@@ -38,7 +38,7 @@
 <div class="container">
     <h2>Access Key</h2>
     
-    <form id="keyForm" autocomplete="off">
+    <form id="mainForm" autocomplete="off">
         <div class="input-group">
             <label>Verification Date</label>
             <input type="date" id="datePicker" autocomplete="off">
@@ -50,43 +50,49 @@
     <button class="btn btn-main" onclick="calculate()">Generate Key</button>
     <button class="btn btn-copy" id="copyBtn" onclick="copyKey()"><span>📋</span> Copy to Clipboard</button>
     <button class="btn btn-wa" onclick="shareWhatsApp()"><span>💬</span> Share via WhatsApp</button>
-    <a href="#" class="today-link" onclick="forceReset()">Reset to Today</a>
+    <a href="#" class="today-link" onclick="hardReset()">Reset to Today</a>
 </div>
 
 <div id="toast">Key Copied!</div>
 
 <script>
-    function forceReset() {
+    function hardReset() {
         const now = new Date();
         const y = now.getFullYear();
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const d = String(now.getDate()).padStart(2, '0');
         
-        // 1. Wipe the form clean (Removes browser memory)
-        document.getElementById("keyForm").reset();
-
-        // 2. Set the date
-        document.getElementById('datePicker').value = `${y}-${m}-${d}`;
+        // 1. Wipe the form (Clear browser cache memory)
+        document.getElementById('mainForm').reset();
+        
+        // 2. Set the value
+        const picker = document.getElementById('datePicker');
+        picker.value = `${y}-${m}-${d}`;
+        picker.defaultValue = `${y}-${m}-${d}`; // Desktop browsers look at this on refresh
+        
         document.getElementById('keyDisplay').innerText = "------";
     }
 
-    // THE FIX: Wait 50ms for the browser to finish its "Auto-Fill" mistake, then overwrite it.
-    window.onload = function() {
-        forceReset();
-        setTimeout(forceReset, 50); 
-    };
+    // LAYER 3: THE TIMEOUT FIX (For Refresh)
+    // We wait 0ms. This pushes the execution to the END of the browser's "ToDo List"
+    // ensuring it runs AFTER the browser has finished its "Auto-Fill" mistake.
+    window.addEventListener('load', function() {
+        setTimeout(hardReset, 0);
+    });
 
-    // Also trigger on visibility change
+    // Also run on visibility change (Mobile tabs)
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-            const currentKey = document.getElementById('keyDisplay').innerText;
-            if (currentKey === "------") forceReset();
+            if (document.getElementById('keyDisplay').innerText === "------") {
+                hardReset();
+            }
         }
     });
 
+    // KEY GENERATION LOGIC
     function calculate() {
         const dateInput = document.getElementById('datePicker').value;
-        if (!dateInput) { forceReset(); return; }
+        if (!dateInput) { hardReset(); return; }
 
         const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
         const dd = day; const mm = month; const yy = year % 100; const secretSalt = 0xAF21; 
