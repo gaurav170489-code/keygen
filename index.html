@@ -10,6 +10,8 @@
     <style>
         :root {
             --primary: #007AFF; 
+            --success: #34C759;
+            --whatsapp: #25D366;
             --bg: #F2F2F7;
         }
         body { 
@@ -26,71 +28,88 @@
             max-width: 350px;
             background: white;
             padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             text-align: center;
         }
-        h2 { margin-top: 0; color: #1C1C1E; font-size: 22px; }
+        h2 { margin-top: 0; color: #1C1C1E; font-size: 22px; margin-bottom: 20px;}
         
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
+        .input-group { margin-bottom: 20px; text-align: left; }
         label {
             display: block;
             font-size: 11px;
             color: #8E8E93;
-            margin-bottom: 5px;
-            margin-left: 5px;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            font-weight: bold;
+            font-weight: 700;
         }
         input[type="date"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: 1px solid #D1D1D6;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             box-sizing: border-box;
             background: #F2F2F7;
-            font-family: inherit;
+            color: #1C1C1E;
         }
 
         .key-box {
             background: #F2F2F7;
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 36px;
+            padding: 15px;
+            border-radius: 16px;
+            font-size: 38px;
             font-weight: 800;
             color: var(--primary);
             letter-spacing: 4px;
-            margin: 15px 0;
-            border: 1px solid #E5E5EA;
+            margin: 10px 0;
+            border: 2px dashed #D1D1D6;
         }
-        button {
-            background: var(--primary);
-            color: white;
+
+        .btn {
             border: none;
             width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 18px;
+            padding: 15px;
+            border-radius: 14px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,122,255,0.2);
-        }
-        button:active { 
-            transform: scale(0.98);
-            opacity: 0.9;
-        }
-        .today-btn {
-            background: none;
-            color: var(--primary);
-            box-shadow: none;
-            font-size: 14px;
             margin-top: 10px;
-            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
         }
+
+        .btn-main { background: var(--primary); color: white; }
+        .btn-copy { background: white; color: var(--primary); border: 2px solid var(--primary); padding: 13px; }
+        .btn-wa { background: var(--whatsapp); color: white; }
+
+        button:active { transform: scale(0.97); opacity: 0.9; }
+
+        .today-link {
+            display: block;
+            color: #8E8E93;
+            font-size: 13px;
+            text-decoration: none;
+            margin-top: 15px;
+        }
+
+        #toast {
+            visibility: hidden;
+            background-color: #1C1C1E;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            position: fixed;
+            bottom: 50px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        #toast.show { visibility: visible; animation: pop 0.3s ease-out, fadeout 0.3s 1.7s ease-in forwards; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
     </style>
 </head>
 <body>
@@ -105,49 +124,67 @@
 
     <div class="key-box" id="keyDisplay">------</div>
     
-    <button onclick="calculate()">Generate Key</button>
-    <button class="today-btn" onclick="setToToday()">Reset to Today</button>
+    <button class="btn btn-main" onclick="calculate()">Generate Key</button>
+    
+    <button class="btn btn-copy" id="copyBtn" onclick="copyKey()">
+        <span>📋</span> Copy to Clipboard
+    </button>
+
+    <button class="btn btn-wa" onclick="shareWhatsApp()">
+        <span>💬</span> Share via WhatsApp
+    </button>
+    
+    <a href="#" class="today-link" onclick="setToToday()">Reset to Today</a>
 </div>
 
+<div id="toast">Key Copied!</div>
+
 <script>
-    // 1. Function to set the picker to the current system date
     function setToToday() {
         const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        
-        const todayString = `${year}-${month}-${day}`;
-        document.getElementById('datePicker').value = todayString;
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        document.getElementById('datePicker').value = `${y}-${m}-${d}`;
         document.getElementById('keyDisplay').innerText = "------";
     }
 
-    // 2. Run automatically when page loads
     window.onload = setToToday;
 
     function calculate() {
         const dateInput = document.getElementById('datePicker').value;
         if (!dateInput) return;
 
-        // Correctly parse YYYY-MM-DD from the picker
         const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
-        
         const dd = day;
         const mm = month;
         const yy = year % 100;
-        
         const secretSalt = 0xAF21; 
 
-        let result;
-        // Even/Odd Logic based on selected day
-        if (dd % 2 === 0) {
-            result = (dd * 157) ^ (yy + secretSalt);
-        } else {
-            result = (dd * 241) ^ (mm * secretSalt);
-        }
+        let result = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
 
         const finalKey = Math.abs(result % 1000000).toString().padStart(6, '0');
         document.getElementById('keyDisplay').innerText = finalKey;
+    }
+
+    function copyKey() {
+        const key = document.getElementById('keyDisplay').innerText;
+        if (key === "------") return alert("Generate key first!");
+        
+        navigator.clipboard.writeText(key).then(() => {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(() => { toast.className = ""; }, 2000);
+        });
+    }
+
+    function shareWhatsApp() {
+        const key = document.getElementById('keyDisplay').innerText;
+        const date = document.getElementById('datePicker').value;
+        if (key === "------") return alert("Generate key first!");
+
+        const text = encodeURIComponent(`Your Access Key for ${date} is: ${key}`);
+        window.location.href = `whatsapp://send?text=${text}`;
     }
 </script>
 
