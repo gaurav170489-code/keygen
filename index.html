@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KeyGen Pro</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
@@ -50,18 +55,25 @@
         const y = now.getFullYear();
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const d = String(now.getDate()).padStart(2, '0');
-        document.getElementById('datePicker').value = `${y}-${m}-${d}`;
+        
+        // Force value update even if browser thinks it has a value
+        const picker = document.getElementById('datePicker');
+        picker.value = `${y}-${m}-${d}`;
         document.getElementById('keyDisplay').innerText = "------";
     }
 
-    // UPDATED: Automatically reset date when user returns to the app
+    // 2. USE 'pageshow' INSTEAD OF 'onload'
+    // This event fires even if the page is loaded from the "Back-Forward Cache" (bfcache)
+    window.addEventListener('pageshow', function(event) {
+        setToToday();
+    });
+
+    // Also update when user switches tabs/apps and comes back
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
             setToToday();
         }
     });
-
-    window.onload = setToToday;
 
     function calculate() {
         const dateInput = document.getElementById('datePicker').value;
