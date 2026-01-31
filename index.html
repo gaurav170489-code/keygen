@@ -15,7 +15,7 @@
         .app-container { width: 85%; max-width: 350px; background: white; padding: 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; display: none; }
         .login-container { width: 85%; max-width: 300px; background: white; padding: 30px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; }
         h2 { margin-top: 0; color: #1C1C1E; font-size: 22px; margin-bottom: 20px;}
-        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group { margin-bottom: 20px; text-align: left; position: relative; }
         label { display: block; font-size: 11px; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
         input { width: 100%; padding: 14px; border: 1px solid #D1D1D6; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #F2F2F7; color: #1C1C1E; font-family: inherit; -webkit-appearance: none; text-align: center;}
         input:focus { outline: none; border-color: var(--primary); }
@@ -38,8 +38,10 @@
 
 <div class="login-container" id="loginScreen">
     <h2>🔐 Secure Login</h2>
-    <form onsubmit="handleLogin(event)">
-        <input type="text" name="username" value="KeyGenUser" autocomplete="username" style="position: absolute; opacity: 0; pointer-events: none; height: 0;">
+    <form onsubmit="handleLogin(event)" method="post" action="#">
+        
+        <input type="text" name="username" value="KeyGenUser" autocomplete="username" 
+               style="position: absolute; left: -9999px; width: 1px; height: 1px;">
         
         <div class="input-group">
             <label style="text-align: center;">Enter Access PIN</label>
@@ -80,15 +82,26 @@
     }
 
     async function handleLogin(event) {
-        if(event) event.preventDefault(); // Stop page reload
+        // 1. Stop the page from reloading immediately
+        if(event) event.preventDefault(); 
+        
         const input = document.getElementById('passwordInput').value;
         const error = document.getElementById('errorMsg');
         
         const inputHash = await sha256(input);
 
         if (inputHash === STORED_HASH) {
+            // 2. Success! Save state
             sessionStorage.setItem('isLoggedIn', 'true');
-            showApp();
+            
+            // 3. IMPORTANT: Blur the input to hide keyboard and signal "Entry Complete" to browser
+            document.getElementById('passwordInput').blur();
+            
+            // 4. Slight delay to let the browser register the submission event before hiding the form
+            setTimeout(() => {
+                showApp();
+            }, 100);
+            
         } else {
             error.style.display = 'block';
             document.getElementById('passwordInput').value = '';
