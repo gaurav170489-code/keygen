@@ -12,28 +12,32 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <style>
-        :root { --primary: #007AFF; --success: #34C759; --whatsapp: #25D366; --bg: #F2F2F7; --error: #FF3B30; }
+        :root { --primary: #007AFF; --success: #34C759; --whatsapp: #25D366; --bg: #F2F2F7; --error: #FF3B30; --gray: #E5E5EA; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
         
         .app-container { width: 85%; max-width: 350px; background: white; padding: 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; display: none; }
         .login-container { width: 85%; max-width: 300px; background: white; padding: 30px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; }
 
         h2 { margin-top: 0; color: #1C1C1E; font-size: 22px; margin-bottom: 20px;}
-        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group { margin-bottom: 20px; text-align: left; position: relative; }
         label { display: block; font-size: 11px; color: #8E8E93; margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
         
         input { width: 100%; padding: 14px; border: 1px solid #D1D1D6; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #F2F2F7; color: #1C1C1E; font-family: inherit; -webkit-appearance: none; text-align: center;}
         input:focus { outline: none; border-color: var(--primary); }
         input[type="date"] { text-align: left; }
 
-        /* THE TRICK: Make the hidden username technically "visible" to the browser, just tiny and far away */
+        /* TYPE SELECTOR STYLES */
+        .type-selector { display: flex; background: var(--gray); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+        .type-option { flex: 1; padding: 8px; font-size: 14px; font-weight: 600; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #8E8E93; }
+        .type-option.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
         .ghost-user {
             position: absolute;
             left: -9999px;
             width: 1px;
             height: 1px;
             overflow: hidden;
-            opacity: 1; /* Must be 1 for some browsers to detect it */
+            opacity: 1; 
         }
 
         .key-box { background: #F2F2F7; padding: 15px; border-radius: 16px; font-size: 38px; font-weight: 800; color: var(--primary); letter-spacing: 4px; margin: 10px 0; border: 2px dashed #D1D1D6; }
@@ -55,12 +59,12 @@
 </head>
 <body>
 
+<iframe name="authFrame" id="authFrame" style="display: none;"></iframe>
+
 <div class="login-container" id="loginScreen">
     <h2>🔐 Secure Login</h2>
-    <form onsubmit="handleLogin(event)" action="#" method="POST">
-        
+    <form id="loginForm" target="authFrame" action="" method="POST">
         <input type="text" name="username" value="KeyGenAdmin" autocomplete="username" class="ghost-user" tabindex="-1">
-        
         <div class="input-group">
             <label style="text-align: center;">Enter Access PIN</label>
             <input type="password" id="passwordInput" placeholder="••••" autocomplete="current-password" name="password">
@@ -72,6 +76,13 @@
 
 <div class="app-container" id="appScreen">
     <h2>Access Key</h2>
+
+    <div class="type-selector">
+        <div class="type-option active" onclick="setType('P')" id="opt-P">P-Type</div>
+        <div class="type-option" onclick="setType('R')" id="opt-R">R-Type</div>
+        <div class="type-option" onclick="setType('D')" id="opt-D">D-Type</div>
+    </div>
+    
     <form id="mainForm" autocomplete="off">
         <div class="input-group">
             <label>Verification Date</label>
@@ -92,38 +103,41 @@
     // SHA-256 for "123apart"
     const STORED_HASH = "9baa63b1afeeba63e13c042b3d5379a731b02f7ace2b4ea08d6f3b9c306b2514"; 
 
+    // CURRENT TYPE STATE (Default: P)
+    let currentType = 'P';
+
+    function setType(type) {
+        currentType = type;
+        // Update UI classes
+        document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
+        document.getElementById(`opt-${type}`).classList.add('active');
+        // Clear result on switch
+        document.getElementById('keyDisplay').innerText = "------";
+    }
+
+    // --- LOGIN HANDLER ---
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const input = document.getElementById('passwordInput').value;
+        const error = document.getElementById('errorMsg');
+        const inputHash = await sha256(input);
+
+        if (inputHash === STORED_HASH) {
+            sessionStorage.setItem('isLoggedIn', 'true');
+            this.submit();
+            document.getElementById('passwordInput').blur();
+            setTimeout(() => { showApp(); }, 500);
+        } else {
+            error.style.display = 'block';
+            document.getElementById('passwordInput').value = '';
+        }
+    });
+
     async function sha256(message) {
         const msgBuffer = new TextEncoder().encode(message);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function handleLogin(event) {
-        if(event) event.preventDefault(); 
-        
-        const input = document.getElementById('passwordInput').value;
-        const error = document.getElementById('errorMsg');
-        
-        const inputHash = await sha256(input);
-
-        if (inputHash === STORED_HASH) {
-            sessionStorage.setItem('isLoggedIn', 'true');
-            
-            // CRITICAL FIX: Do NOT clear the password input value.
-            // The browser scrapes this value AFTER the submit event to save it.
-            // Just blur it to close keyboard.
-            document.getElementById('passwordInput').blur();
-            
-            // Small delay to allow the browser to register the "success" before hiding the form
-            setTimeout(() => {
-                showApp();
-            }, 300);
-            
-        } else {
-            error.style.display = 'block';
-            document.getElementById('passwordInput').value = '';
-        }
     }
 
     function showApp() {
@@ -162,19 +176,63 @@
         }
     });
 
+    // --- CALCULATION LOGIC ---
     function calculate() {
         const dateInput = document.getElementById('datePicker').value;
         if (!dateInput) { hardReset(); return; }
 
         const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
-        const dd = day; const mm = month; const yy = year % 100; const secretSalt = 0xAF21; 
+        
+        // Ensure month is 2 digits string for R/D logic (e.g., "02")
+        const mmStr = String(month).padStart(2, '0');
+        
+        let resultKey = "";
 
-        let shuffle = Math.abs(Math.sin(dd * 12.9898 + mm * 78.233 + yy * 4.1414) * 43758.5453);
-        let scrambleFactor = Math.floor(shuffle) % 100000;
-        let baseResult = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
-        let finalResult = (baseResult ^ scrambleFactor) % 1000000;
+        if (currentType === 'P') {
+            // === ORIGINAL P TYPE ===
+            const dd = day; const mm = month; const yy = year % 100; const secretSalt = 0xAF21; 
+            let shuffle = Math.abs(Math.sin(dd * 12.9898 + mm * 78.233 + yy * 4.1414) * 43758.5453);
+            let scrambleFactor = Math.floor(shuffle) % 100000;
+            let baseResult = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
+            let finalResult = (baseResult ^ scrambleFactor) % 1000000;
+            resultKey = Math.abs(finalResult).toString().padStart(6, '0');
 
-        document.getElementById('keyDisplay').innerText = Math.abs(finalResult).toString().padStart(6, '0');
+        } else if (currentType === 'R') {
+            // === R TYPE ===
+            // 1. Calc: (dd * 91) + 35 -> Pad to 4 digits -> Reverse
+            const calc = (day * 91) + 35;
+            const X = String(calc).padStart(4, '0');
+            const X_rev = X.split('').reverse().join(''); // Reverse X
+
+            // 2. MM -> Reverse
+            const Y = mmStr.split('').reverse().join(''); // Reverse Y
+
+            // 3. Sum
+            const sum = parseInt(X_rev) + parseInt(Y);
+            resultKey = String(sum);
+
+        } else if (currentType === 'D') {
+            // === D TYPE ===
+            const yy = year % 100;
+
+            // Part 1: (Same as R Type Logic)
+            const calc = (day * 91) + 35;
+            const X = String(calc).padStart(4, '0');
+            const X_rev = X.split('').reverse().join('');
+            const Y = mmStr.split('').reverse().join('');
+            const sum = parseInt(X_rev) + parseInt(Y);
+
+            // Part 2: dd * yy -> Reverse
+            const calc1 = day * yy;
+            const X1_str = String(calc1);
+            const X1_rev = X1_str.split('').reverse().join('');
+            const sum1 = parseInt(X1_rev); // Technically just the reversed string parsed
+
+            // Final: Concatenate Sum + Sum1
+            resultKey = String(sum) + String(sum1);
+        }
+
+        document.getElementById('keyDisplay').innerText = resultKey;
     }
 
     function copyKey() {
@@ -191,7 +249,7 @@
         const key = document.getElementById('keyDisplay').innerText;
         const date = document.getElementById('datePicker').value;
         if (key === "------") return alert("Generate key first!");
-        window.location.href = `whatsapp://send?text=${encodeURIComponent(`Access Key for ${date}: ${key}`)}`;
+        window.location.href = `whatsapp://send?text=${encodeURIComponent(`KeyGen Pro (${currentType}-Type)\nDate: ${date}\nKey: ${key}`)}`;
     }
 </script>
 
