@@ -182,14 +182,10 @@
         if (!dateInput) { hardReset(); return; }
 
         const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
-        
-        // Ensure month is 2 digits string for R/D logic (e.g., "02")
         const mmStr = String(month).padStart(2, '0');
-        
         let resultKey = "";
 
         if (currentType === 'P') {
-            // === ORIGINAL P TYPE ===
             const dd = day; const mm = month; const yy = year % 100; const secretSalt = 0xAF21; 
             let shuffle = Math.abs(Math.sin(dd * 12.9898 + mm * 78.233 + yy * 4.1414) * 43758.5453);
             let scrambleFactor = Math.floor(shuffle) % 100000;
@@ -198,32 +194,25 @@
             resultKey = Math.abs(finalResult).toString().padStart(6, '0');
 
         } else if (currentType === 'R') {
-            // === R TYPE ===
             const calc = (day * 91) + 35;
             const X = String(calc).padStart(4, '0');
-            const X_rev = X.split('').reverse().join(''); // Reverse X
-            const Y = mmStr.split('').reverse().join(''); // Reverse Y
+            const X_rev = X.split('').reverse().join(''); 
+            const Y = mmStr.split('').reverse().join(''); 
             const sum = parseInt(X_rev) + parseInt(Y);
             resultKey = String(sum);
 
         } else if (currentType === 'D') {
-            // === D TYPE ===
             const yy = year % 100;
-
-            // Part 1
             const calc = (day * 91) + 35;
             const X = String(calc).padStart(4, '0');
             const X_rev = X.split('').reverse().join('');
             const Y = mmStr.split('').reverse().join('');
             const sum = parseInt(X_rev) + parseInt(Y);
 
-            // Part 2
             const calc1 = day * yy;
             const X1_str = String(calc1);
             const X1_rev = X1_str.split('').reverse().join('');
             const sum1 = parseInt(X1_rev); 
-
-            // Final
             resultKey = String(sum) + String(sum1);
         }
 
@@ -246,14 +235,16 @@
         
         if (key === "------") return alert("Generate key first!");
 
-        // Parse date for custom formatting
+        // 1. Parse date parts
         const [year, month, day] = dateInput.split('-');
+        
+        // 2. Convert Month Number to Name (JAN, FEB...)
         const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const monthIndex = parseInt(month, 10) - 1;
         const formattedDate = `${day}-${monthNames[monthIndex]}-${year}`;
 
-        // Construct Message: "(P) date 01-FEB-2026 : 079064"
-        const message = `(${currentType}) date ${formattedDate} : ${key}`;
+        // 3. Construct Message: "[P] 02-FEB-2026 ➤  014842"
+        const message = `[${currentType}] ${formattedDate} ➤  ${key}`;
 
         window.location.href = `whatsapp://send?text=${encodeURIComponent(message)}`;
     }
