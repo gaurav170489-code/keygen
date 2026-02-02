@@ -199,15 +199,10 @@
 
         } else if (currentType === 'R') {
             // === R TYPE ===
-            // 1. Calc: (dd * 91) + 35 -> Pad to 4 digits -> Reverse
             const calc = (day * 91) + 35;
             const X = String(calc).padStart(4, '0');
             const X_rev = X.split('').reverse().join(''); // Reverse X
-
-            // 2. MM -> Reverse
             const Y = mmStr.split('').reverse().join(''); // Reverse Y
-
-            // 3. Sum
             const sum = parseInt(X_rev) + parseInt(Y);
             resultKey = String(sum);
 
@@ -215,20 +210,20 @@
             // === D TYPE ===
             const yy = year % 100;
 
-            // Part 1: (Same as R Type Logic)
+            // Part 1
             const calc = (day * 91) + 35;
             const X = String(calc).padStart(4, '0');
             const X_rev = X.split('').reverse().join('');
             const Y = mmStr.split('').reverse().join('');
             const sum = parseInt(X_rev) + parseInt(Y);
 
-            // Part 2: dd * yy -> Reverse
+            // Part 2
             const calc1 = day * yy;
             const X1_str = String(calc1);
             const X1_rev = X1_str.split('').reverse().join('');
-            const sum1 = parseInt(X1_rev); // Technically just the reversed string parsed
+            const sum1 = parseInt(X1_rev); 
 
-            // Final: Concatenate Sum + Sum1
+            // Final
             resultKey = String(sum) + String(sum1);
         }
 
@@ -247,9 +242,20 @@
 
     function shareWhatsApp() {
         const key = document.getElementById('keyDisplay').innerText;
-        const date = document.getElementById('datePicker').value;
+        const dateInput = document.getElementById('datePicker').value; // YYYY-MM-DD
+        
         if (key === "------") return alert("Generate key first!");
-        window.location.href = `whatsapp://send?text=${encodeURIComponent(`KeyGen Pro (${currentType}-Type)\nDate: ${date}\nKey: ${key}`)}`;
+
+        // Parse date for custom formatting
+        const [year, month, day] = dateInput.split('-');
+        const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const monthIndex = parseInt(month, 10) - 1;
+        const formattedDate = `${day}-${monthNames[monthIndex]}-${year}`;
+
+        // Construct Message: "(P) date 01-FEB-2026 : 079064"
+        const message = `(${currentType}) date ${formattedDate} : ${key}`;
+
+        window.location.href = `whatsapp://send?text=${encodeURIComponent(message)}`;
     }
 </script>
 
