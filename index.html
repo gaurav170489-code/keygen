@@ -100,11 +100,19 @@
 <div id="toast">Key Copied!</div>
 
 <script>
+    // ============================================
+    // CONFIGURATION
+    // ============================================
     // SHA-256 for "123apart"
     const STORED_HASH = "9baa63b1afeeba63e13c042b3d5379a731b02f7ace2b4ea08d6f3b9c306b2514"; 
+    
+    // Auto Logout Time: 5 Minutes (in milliseconds)
+    // 1 Minute = 60000 | 5 Minutes = 300000
+    const IDLE_TIMEOUT = 300000; 
 
     // CURRENT TYPE STATE (Default: P)
     let currentType = 'P';
+    let idleTimer; // Variable to hold the timer
 
     function setType(type) {
         currentType = type;
@@ -114,6 +122,29 @@
         // Clear result on switch
         document.getElementById('keyDisplay').innerText = "------";
     }
+
+    // --- IDLE TIMER LOGIC ---
+    function resetIdleTimer() {
+        // Only run timer if user is actually logged in
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(logout, IDLE_TIMEOUT);
+        }
+    }
+
+    // Attach event listeners to detect activity
+    window.onload = function() {
+        document.body.addEventListener('mousemove', resetIdleTimer);
+        document.body.addEventListener('keypress', resetIdleTimer);
+        document.body.addEventListener('touchstart', resetIdleTimer);
+        document.body.addEventListener('click', resetIdleTimer);
+        
+        // Initial check
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            showApp();
+            resetIdleTimer(); // Start the timer immediately
+        }
+    };
 
     // --- LOGIN HANDLER ---
     document.getElementById('loginForm').addEventListener('submit', async function(event) {
@@ -127,6 +158,7 @@
             this.submit();
             document.getElementById('passwordInput').blur();
             setTimeout(() => { showApp(); }, 500);
+            resetIdleTimer(); // Start the idle timer
         } else {
             error.style.display = 'block';
             document.getElementById('passwordInput').value = '';
@@ -147,15 +179,10 @@
     }
 
     function logout() {
+        clearTimeout(idleTimer);
         sessionStorage.removeItem('isLoggedIn');
         location.reload();
     }
-
-    window.onload = function() {
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
-            showApp();
-        }
-    };
 
     function hardReset() {
         const now = new Date();
@@ -180,6 +207,9 @@
     function calculate() {
         const dateInput = document.getElementById('datePicker').value;
         if (!dateInput) { hardReset(); return; }
+        
+        // Reset timer on button click as well
+        resetIdleTimer();
 
         const [year, month, day] = dateInput.split('-').map(num => parseInt(num, 10));
         const mmStr = String(month).padStart(2, '0');
@@ -220,6 +250,7 @@
     }
 
     function copyKey() {
+        resetIdleTimer();
         const key = document.getElementById('keyDisplay').innerText;
         if (key === "------") return alert("Generate key first!");
         navigator.clipboard.writeText(key).then(() => {
@@ -230,20 +261,18 @@
     }
 
     function shareWhatsApp() {
+        resetIdleTimer();
         const key = document.getElementById('keyDisplay').innerText;
         const dateInput = document.getElementById('datePicker').value; // YYYY-MM-DD
         
         if (key === "------") return alert("Generate key first!");
 
-        // 1. Parse date parts
         const [year, month, day] = dateInput.split('-');
-        
-        // 2. Convert Month Number to Name (JAN, FEB...)
         const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const monthIndex = parseInt(month, 10) - 1;
         const formattedDate = `${day}-${monthNames[monthIndex]}-${year}`;
 
-        // 3. Construct Message: "[P] 02-FEB-2026 ➤  014842"
+        // Format: [P] 02-FEB-2026 ➤  014842
         const message = `[${currentType}] ${formattedDate} ➤  ${key}`;
 
         window.location.href = `whatsapp://send?text=${encodeURIComponent(message)}`;
