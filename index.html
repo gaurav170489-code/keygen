@@ -224,6 +224,13 @@
             resultKey = Math.abs(finalResult).toString().padStart(6, '0');
 
         } else if (currentType === 'R') {
+            const dd = day; const mm = month; const yy = year % 100; const secretSalt = 0xC7B2; 
+            let shuffle = Math.abs(Math.sin(dd * 12.9898 + mm * 78.233 + yy * 4.1414) * 43758.5453);
+            let scrambleFactor = Math.floor(shuffle) % 100000;
+            let baseResult = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
+            let finalResult = (baseResult ^ scrambleFactor) % 1000000;
+            resultKey = Math.abs(finalResult).toString().padStart(6, '0'); 
+            /*else if (currentType === 'R') {
             const calc = (day * 91) + 35;
             const X = String(calc).padStart(4, '0');
             const X_rev = X.split('').reverse().join(''); 
@@ -231,7 +238,7 @@
             const sum = parseInt(X_rev) + parseInt(Y);
             resultKey = String(sum);
 
-        } else if (currentType === 'D') {
+        }*/ else if (currentType === 'D') {
             const yy = year % 100;
             const calc = (day * 91) + 35;
             const X = String(calc).padStart(4, '0');
