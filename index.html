@@ -229,7 +229,8 @@
             let scrambleFactor = Math.floor(shuffle) % 100000;
             let baseResult = (dd % 2 === 0) ? (dd * 157) ^ (yy + secretSalt) : (dd * 241) ^ (mm * secretSalt);
             let finalResult = (baseResult ^ scrambleFactor) % 1000000;
-            resultKey = Math.abs(finalResult).toString().padStart(6, '0'); 
+            resultKey = Math.abs(finalResult).toString().padStart(6, '0');
+        }
             /*else if (currentType === 'R') {
             const calc = (day * 91) + 35;
             const X = String(calc).padStart(4, '0');
